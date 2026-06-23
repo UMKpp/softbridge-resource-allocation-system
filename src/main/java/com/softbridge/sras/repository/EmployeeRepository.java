@@ -10,4 +10,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, String> {
 
     @Query("SELECT e FROM Employee e LEFT JOIN FETCH e.skills WHERE e.employeeId = :employeeId")
     Optional<Employee> findByIdWithSkills(String employeeId);
+
+    Optional<Employee> findByUsername(String username);
 }
