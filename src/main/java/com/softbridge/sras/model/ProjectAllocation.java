@@ -1,6 +1,7 @@
 package com.softbridge.sras.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ public class ProjectAllocation {
     @JoinColumn(name = "employee_id")
     private Employee employee;
 
+    @NotBlank(message = "Allocated role is required")
     private String allocatedRole;
 
     private LocalDate allocationDate;
