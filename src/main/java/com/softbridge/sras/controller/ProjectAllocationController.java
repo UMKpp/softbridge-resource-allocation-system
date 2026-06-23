@@ -4,6 +4,7 @@ import com.softbridge.sras.model.ProjectAllocation;
 import com.softbridge.sras.service.ProjectAllocationService;
 import org.springframework.web.bind.annotation.*;
 import com.softbridge.sras.dto.ProjectAllocationResponse;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -18,7 +19,8 @@ public class ProjectAllocationController {
     }
 
     @PostMapping
-    public ProjectAllocation allocateEmployee(@RequestBody ProjectAllocation allocation) {
+    public ProjectAllocation allocateEmployee(
+            @Valid @RequestBody ProjectAllocation allocation) {
         return allocationService.allocateEmployee(allocation);
     }
 
