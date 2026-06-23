@@ -2,6 +2,8 @@ package com.softbridge.sras.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,12 +13,25 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI srasOpenAPI() {
 
+        final String securitySchemeName = "Bearer Authentication";
+
         return new OpenAPI()
                 .info(new Info()
                         .title("SoftBridge Resource Allocation System API")
                         .version("1.0")
                         .description(
                                 "API documentation for employee, skill, project, and resource allocation management."
-                        ));
+                        ))
+                .addSecurityItem(
+                        new SecurityRequirement().addList(securitySchemeName)
+                )
+                .schemaRequirement(
+                        securitySchemeName,
+                        new SecurityScheme()
+                                .name(securitySchemeName)
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                );
     }
 }
