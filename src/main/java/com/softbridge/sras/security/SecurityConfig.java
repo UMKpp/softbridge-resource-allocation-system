@@ -2,6 +2,7 @@ package com.softbridge.sras.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -41,11 +42,32 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        .requestMatchers("/employees/**", "/skills/**")
-                        .hasAnyRole("HR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/employees/**")
+                        .hasAnyRole("HR", "PM", "EMPLOYEE")
 
-                        .requestMatchers("/projects/**", "/allocations/**", "/employee-skills/**")
-                        .hasAnyRole("PROJECT_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/employees/**")
+                        .hasRole("HR")
+
+                        .requestMatchers(HttpMethod.PUT, "/employees/**")
+                        .hasAnyRole("HR", "EMPLOYEE")
+
+                        .requestMatchers(HttpMethod.DELETE, "/employees/**")
+                        .hasRole("HR")
+
+                        .requestMatchers("/skills/**")
+                        .hasRole("HR")
+
+                        .requestMatchers("/projects/**", "/allocations/**")
+                        .hasAnyRole("HR", "PM")
+
+                        .requestMatchers(HttpMethod.GET, "/employee-skills/employees/search")
+                        .hasAnyRole("HR", "PM")
+
+                        .requestMatchers(HttpMethod.GET, "/employee-skills/employee/**")
+                        .hasAnyRole("HR", "PM", "EMPLOYEE")
+
+                        .requestMatchers("/employee-skills/**")
+                        .hasRole("HR")
 
                         .anyRequest().authenticated()
                 )
