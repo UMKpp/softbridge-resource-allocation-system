@@ -1,11 +1,13 @@
 package com.softbridge.sras.config;
 
 import com.softbridge.sras.model.Employee;
+import com.softbridge.sras.model.EmployeeProjectAssignment;
 import com.softbridge.sras.model.EmployeeSkill;
 import com.softbridge.sras.model.Project;
 import com.softbridge.sras.model.ProjectAllocation;
 import com.softbridge.sras.model.Skill;
 import com.softbridge.sras.repository.EmployeeRepository;
+import com.softbridge.sras.repository.EmployeeProjectAssignmentRepository;
 import com.softbridge.sras.repository.EmployeeSkillRepository;
 import com.softbridge.sras.repository.ProjectAllocationRepository;
 import com.softbridge.sras.repository.ProjectRepository;
@@ -26,6 +28,7 @@ import java.util.Set;
 public class DataSeeder implements CommandLineRunner {
 
     private final EmployeeRepository employeeRepository;
+    private final EmployeeProjectAssignmentRepository employeeProjectAssignmentRepository;
     private final SkillRepository skillRepository;
     private final EmployeeSkillRepository employeeSkillRepository;
     private final ProjectRepository projectRepository;
@@ -33,12 +36,14 @@ public class DataSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(EmployeeRepository employeeRepository,
+                      EmployeeProjectAssignmentRepository employeeProjectAssignmentRepository,
                       SkillRepository skillRepository,
                       EmployeeSkillRepository employeeSkillRepository,
                       ProjectRepository projectRepository,
                       ProjectAllocationRepository projectAllocationRepository,
                       PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
+        this.employeeProjectAssignmentRepository = employeeProjectAssignmentRepository;
         this.skillRepository = skillRepository;
         this.employeeSkillRepository = employeeSkillRepository;
         this.projectRepository = projectRepository;
@@ -216,7 +221,18 @@ public class DataSeeder implements CommandLineRunner {
         employeeSkillRepository.saveAll(employeeSkills);
 
         List<Project> savedProjects = projectRepository.findAll();
+        List<Employee> projectManagers = employees.stream()
+                .filter(employee -> employee.getUserType().equals("PM"))
+                .toList();
+
+        for (int i = 0; i < savedProjects.size(); i++) {
+            savedProjects.get(i).setProjectManager(projectManagers.get(i % projectManagers.size()));
+        }
+
+        projectRepository.saveAll(savedProjects);
+
         List<ProjectAllocation> allocations = new ArrayList<>();
+        List<EmployeeProjectAssignment> employeeProjectAssignments = new ArrayList<>();
         Set<String> allocationKeys = new HashSet<>();
 
         while (allocations.size() < 20) {
@@ -234,10 +250,20 @@ public class DataSeeder implements CommandLineRunner {
                 allocation.setAllocationDate(LocalDate.now().minusDays(random.nextInt(30)));
 
                 allocations.add(allocation);
+
+                EmployeeProjectAssignment employeeProjectAssignment = new EmployeeProjectAssignment();
+                employeeProjectAssignment.setEmployee(employee);
+                employeeProjectAssignment.setProject(project);
+                employeeProjectAssignment.setRole(employee.getJobRole());
+                employeeProjectAssignment.setAssignedBy(project.getProjectManager());
+                employeeProjectAssignment.setStatus("ACTIVE");
+
+                employeeProjectAssignments.add(employeeProjectAssignment);
             }
         }
 
         projectAllocationRepository.saveAll(allocations);
+        employeeProjectAssignmentRepository.saveAll(employeeProjectAssignments);
 
         System.out.println("Demo data seeded successfully!");
     }
