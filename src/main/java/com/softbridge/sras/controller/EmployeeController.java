@@ -39,7 +39,7 @@ public class EmployeeController {
 
     @GetMapping
     public List<Employee> getAllEmployees(Authentication authentication) {
-        if (!roleService.hasRole(authentication, "HR") && !roleService.hasRole(authentication, "PM")) {
+        if (!roleService.hasRole(authentication, "HR")) {
             throw new AccessDeniedException("Access denied");
         }
 
