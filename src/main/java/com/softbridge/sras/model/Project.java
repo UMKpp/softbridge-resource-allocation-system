@@ -1,6 +1,8 @@
 package com.softbridge.sras.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -23,4 +25,14 @@ public class Project {
 
     @NotBlank(message = "Status is required")
     private String status;
+
+    @ManyToOne
+    @JoinColumn(name = "project_manager_id")
+    private Employee projectManager;
+
+    private String requiredSkillName;
+
+    @Min(value = 1, message = "Required skill level must be at least 1")
+    @Max(value = 5, message = "Required skill level must be at most 5")
+    private Integer requiredSkillLevel;
 }
