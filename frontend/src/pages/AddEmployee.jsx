@@ -1,120 +1,104 @@
 import { useState } from "react";
 import axios from "axios";
+import Sidebar from "../components/Sidebar";
+import { authHeader } from "../auth";
+
+const initialForm = {
+    employeeId: "",
+    username: "",
+    password: "",
+    fullName: "",
+    email: "",
+    department: "",
+    jobRole: "",
+    userType: "EMPLOYEE"
+};
 
 export default function AddEmployee() {
+    const [form, setForm] = useState(initialForm);
 
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [department, setDepartment] = useState("");
-    const [userType, setUserType] = useState("");
+    const updateField = (field, value) => {
+        setForm((current) => ({
+            ...current,
+            [field]: value
+        }));
+    };
 
     const handleSubmit = async () => {
+        const hasEmptyField = Object.values(form).some((value) => !value);
 
-        // Basic validation
-        if (!username || !password || !department || !userType) {
+        if (hasEmptyField) {
             alert("Please fill all fields");
             return;
         }
 
         try {
-            const token = localStorage.getItem("token");
+            await axios.post("http://localhost:8081/employees", form, {
+                headers: authHeader()
+            });
 
-            const res = await axios.post(
-                "http://localhost:8081/employees",
-                {
-                    username,
-                    password,
-                    department,
-                    userType
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-
-            alert("Employee Added Successfully ");
-            console.log(res.data);
-
-            // Clear form
-            setUsername("");
-            setPassword("");
-            setDepartment("");
-            setUserType("");
-
+            alert("Employee Added Successfully");
+            setForm(initialForm);
         } catch (err) {
-            console.log("ERROR:", err);
-            alert(
-                err.response?.data?.message ||
-                "Failed to add employee"
-            );
+            alert(err.response?.data?.message || "Failed to add employee");
         }
     };
 
     return (
-        <div style={{
-            padding: "30px",
-            maxWidth: "400px",
-            margin: "0 auto",
-            fontFamily: "Arial"
-        }}>
+        <div style={{ display: "flex", minHeight: "100vh", textAlign: "left" }}>
+            <Sidebar />
 
-            <h2>Add Employee</h2>
+            <main style={mainStyle}>
+                <h2>Add Employee</h2>
 
-            <input
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                style={inputStyle}
-            />
+                <div style={formStyle}>
+                    <input placeholder="Employee ID" value={form.employeeId} onChange={(e) => updateField("employeeId", e.target.value)} style={inputStyle} />
+                    <input placeholder="Username" value={form.username} onChange={(e) => updateField("username", e.target.value)} style={inputStyle} />
+                    <input type="password" placeholder="Password" value={form.password} onChange={(e) => updateField("password", e.target.value)} style={inputStyle} />
+                    <input placeholder="Full name" value={form.fullName} onChange={(e) => updateField("fullName", e.target.value)} style={inputStyle} />
+                    <input placeholder="Email" value={form.email} onChange={(e) => updateField("email", e.target.value)} style={inputStyle} />
+                    <input placeholder="Department" value={form.department} onChange={(e) => updateField("department", e.target.value)} style={inputStyle} />
+                    <input placeholder="Job role" value={form.jobRole} onChange={(e) => updateField("jobRole", e.target.value)} style={inputStyle} />
+                    <select value={form.userType} onChange={(e) => updateField("userType", e.target.value)} style={inputStyle}>
+                        <option value="HR">HR</option>
+                        <option value="PM">PM</option>
+                        <option value="EMPLOYEE">EMPLOYEE</option>
+                    </select>
 
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={inputStyle}
-            />
-
-            <input
-                placeholder="Department"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                style={inputStyle}
-            />
-
-            <input
-                placeholder="HR / ADMIN / EMPLOYEE"
-                value={userType}
-                onChange={(e) => setUserType(e.target.value)}
-                style={inputStyle}
-            />
-
-            <button onClick={handleSubmit} style={btnStyle}>
-                Save Employee
-            </button>
-
+                    <button onClick={handleSubmit} style={btnStyle}>
+                        Save Employee
+                    </button>
+                </div>
+            </main>
         </div>
     );
 }
 
-// Styles
+const mainStyle = {
+    flex: 1,
+    padding: "30px",
+    backgroundColor: "#f8fafc"
+};
+
+const formStyle = {
+    maxWidth: "480px",
+    marginTop: "20px"
+};
+
 const inputStyle = {
     width: "100%",
     padding: "10px",
     margin: "8px 0",
-    borderRadius: "5px",
-    border: "1px solid #ccc"
+    border: "1px solid #cbd5e1",
+    boxSizing: "border-box"
 };
 
 const btnStyle = {
     width: "100%",
     padding: "10px",
     marginTop: "10px",
-    backgroundColor: "#007bff",
+    backgroundColor: "#2563eb",
     color: "white",
     border: "none",
-    borderRadius: "5px",
     cursor: "pointer"
 };
