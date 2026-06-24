@@ -19,6 +19,6 @@ public class EmployeeSkillRequest {
 
     @NotNull(message = "Skill level is required")
     @Min(value = 1, message = "Skill level must be at least 1")
-    @Max(value = 5, message = "Skill level must be at most 5")
+    @Max(value = 3, message = "Skill level must be at most 3")
     private Integer skillLevel;
 }
