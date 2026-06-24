@@ -11,6 +11,8 @@ public interface ProjectAllocationRepository extends JpaRepository<ProjectAlloca
 
     List<ProjectAllocation> findByProject(Project project);
 
+    List<ProjectAllocation> findByEmployee(Employee employee);
+
     boolean existsByProjectAndEmployee(Project project, Employee employee);
 
     long countByEmployee(Employee employee);
