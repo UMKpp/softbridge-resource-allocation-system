@@ -163,7 +163,7 @@ public class DataSeeder implements CommandLineRunner {
                 jobRole = jobRoles.get(random.nextInt(jobRoles.size()));
                 department = departments.get(random.nextInt(departments.size()));
             } else if (i <= 90) {
-                userType = "PROJECT_MANAGER";
+                userType = "PM";
                 jobRole = "Project Manager";
                 department = "Project Management";
             } else if (i <= 95) {
@@ -171,9 +171,9 @@ public class DataSeeder implements CommandLineRunner {
                 jobRole = "HR Manager";
                 department = "Human Resources";
             } else {
-                userType = "ADMIN";
-                jobRole = "Admin";
-                department = "Administration";
+                userType = "HR";
+                jobRole = "HR Manager";
+                department = "Human Resources";
             }
 
             Employee employee = new Employee();
