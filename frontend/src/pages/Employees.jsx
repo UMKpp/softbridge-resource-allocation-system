@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import Sidebar from "../components/Sidebar";
-import { authHeader, getAuth } from "../auth";
+import { api, authConfig } from "../api";
+import { getAuth } from "../auth";
 
 export default function Employees() {
     const { role } = getAuth();
     const canEdit = role === "HR";
+    const [loading, setLoading] = useState(true);
     const [employees, setEmployees] = useState([]);
     const [edit, setEdit] = useState(null);
 
@@ -14,24 +15,21 @@ export default function Employees() {
     }, []);
 
     const fetchEmployees = async () => {
-        try {
-            const res = await axios.get("http://localhost:8081/employees", {
-                headers: authHeader()
-            });
+        setLoading(true);
 
+        try {
+            const res = await api.get("/employees", authConfig());
             setEmployees(res.data);
         } catch (err) {
             setEmployees([]);
+        } finally {
+            setLoading(false);
         }
     };
 
     const deleteEmployee = async (id) => {
         try {
-            await axios.delete(`http://localhost:8081/employees/${id}`, {
-                headers: authHeader()
-            });
-
-            alert("Employee Deleted");
+            await api.delete(`/employees/${id}`, authConfig());
             fetchEmployees();
         } catch (err) {
             alert(err.response?.data?.message || "Delete Failed");
@@ -40,15 +38,7 @@ export default function Employees() {
 
     const updateEmployee = async () => {
         try {
-            await axios.put(
-                `http://localhost:8081/employees/${edit.employeeId}`,
-                edit,
-                {
-                    headers: authHeader()
-                }
-            );
-
-            alert("Employee Updated Successfully");
+            await api.put(`/employees/${edit.employeeId}`, edit, authConfig());
             setEdit(null);
             fetchEmployees();
         } catch (err) {
@@ -57,145 +47,85 @@ export default function Employees() {
     };
 
     return (
-        <div style={{ display: "flex", minHeight: "100vh", textAlign: "left" }}>
+        <div className="app-shell">
             <Sidebar />
 
-            <main style={mainStyle}>
-                <h2>Employees</h2>
+            <main className="content">
+                <div className="page-header">
+                    <div>
+                        <p className="eyebrow">Employees</p>
+                        <h1 className="page-title">Employee Directory</h1>
+                        <p className="page-subtitle">{canEdit ? "Manage employee records and role assignment." : "View employee profiles for project planning."}</p>
+                    </div>
+                </div>
 
-                <table border="1" cellPadding="10" style={tableStyle}>
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Name</th>
-                        <th>User Type</th>
-                        <th>Department</th>
-                        <th>Job Role</th>
-                        {canEdit && <th>Actions</th>}
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    {employees.map((emp) => (
-                        <tr key={emp.employeeId}>
-                            <td>{emp.employeeId}</td>
-                            <td>{emp.username}</td>
-                            <td>{emp.fullName}</td>
-                            <td>{emp.userType}</td>
-                            <td>{emp.department}</td>
-                            <td>{emp.jobRole}</td>
-                            {canEdit && (
-                                <td>
-                                    <button onClick={() => setEdit(emp)} style={actionButton}>
-                                        Edit
-                                    </button>
-
-                                    <button onClick={() => deleteEmployee(emp.employeeId)} style={dangerButton}>
-                                        Delete
-                                    </button>
-                                </td>
-                            )}
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
+                <section className="panel">
+                    {loading ? (
+                        <div className="loading-state">Loading employees</div>
+                    ) : employees.length === 0 ? (
+                        <div className="empty-state">No employees available</div>
+                    ) : (
+                        <div className="table-wrap">
+                            <table className="data-table">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Department</th>
+                                    <th>Job Role</th>
+                                    {canEdit && <th>Actions</th>}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {employees.map((employee) => (
+                                    <tr key={employee.employeeId}>
+                                        <td>{employee.employeeId}</td>
+                                        <td>
+                                            <strong>{employee.fullName}</strong>
+                                            <div className="card-meta">{employee.email}</div>
+                                        </td>
+                                        <td><span className="tag">{employee.userType}</span></td>
+                                        <td>{employee.department}</td>
+                                        <td>{employee.jobRole}</td>
+                                        {canEdit && (
+                                            <td>
+                                                <div className="actions" style={{ marginTop: 0 }}>
+                                                    <button className="secondary-button" onClick={() => setEdit(employee)}>Edit</button>
+                                                    <button className="danger-button" onClick={() => deleteEmployee(employee.employeeId)}>Delete</button>
+                                                </div>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </section>
 
                 {edit && (
-                    <div style={overlayStyle}>
-                        <div style={modalStyle}>
-                            <h3>Edit Employee</h3>
-
-                            <input value={edit.username || ""} onChange={(e) => setEdit({ ...edit, username: e.target.value })} placeholder="Username" style={inputStyle} />
-                            <input value={edit.fullName || ""} onChange={(e) => setEdit({ ...edit, fullName: e.target.value })} placeholder="Full name" style={inputStyle} />
-                            <input value={edit.email || ""} onChange={(e) => setEdit({ ...edit, email: e.target.value })} placeholder="Email" style={inputStyle} />
-                            <input value={edit.department || ""} onChange={(e) => setEdit({ ...edit, department: e.target.value })} placeholder="Department" style={inputStyle} />
-                            <input value={edit.jobRole || ""} onChange={(e) => setEdit({ ...edit, jobRole: e.target.value })} placeholder="Job role" style={inputStyle} />
-                            <select value={edit.userType || "EMPLOYEE"} onChange={(e) => setEdit({ ...edit, userType: e.target.value })} style={inputStyle}>
+                    <section className="panel" style={{ marginTop: "18px" }}>
+                        <h2 className="card-title">Edit Employee</h2>
+                        <div className="form-grid" style={{ marginTop: "14px" }}>
+                            <input className="field" value={edit.username || ""} onChange={(e) => setEdit({ ...edit, username: e.target.value })} placeholder="Username" />
+                            <input className="field" value={edit.fullName || ""} onChange={(e) => setEdit({ ...edit, fullName: e.target.value })} placeholder="Full name" />
+                            <input className="field" value={edit.email || ""} onChange={(e) => setEdit({ ...edit, email: e.target.value })} placeholder="Email" />
+                            <input className="field" value={edit.department || ""} onChange={(e) => setEdit({ ...edit, department: e.target.value })} placeholder="Department" />
+                            <input className="field" value={edit.jobRole || ""} onChange={(e) => setEdit({ ...edit, jobRole: e.target.value })} placeholder="Job role" />
+                            <select className="field" value={edit.userType || "EMPLOYEE"} onChange={(e) => setEdit({ ...edit, userType: e.target.value })}>
                                 <option value="HR">HR</option>
                                 <option value="PM">PM</option>
                                 <option value="EMPLOYEE">EMPLOYEE</option>
                             </select>
-
-                            <div style={{ display: "flex", gap: "10px" }}>
-                                <button onClick={updateEmployee} style={actionButton}>
-                                    Update
-                                </button>
-
-                                <button onClick={() => setEdit(null)} style={secondaryButton}>
-                                    Cancel
-                                </button>
-                            </div>
                         </div>
-                    </div>
+                        <div className="actions">
+                            <button className="primary-button" onClick={updateEmployee}>Update</button>
+                            <button className="secondary-button" onClick={() => setEdit(null)}>Cancel</button>
+                        </div>
+                    </section>
                 )}
             </main>
         </div>
     );
 }
-
-const mainStyle = {
-    flex: 1,
-    padding: "30px",
-    backgroundColor: "#f8fafc",
-    overflowX: "auto"
-};
-
-const tableStyle = {
-    width: "100%",
-    marginTop: "20px",
-    borderCollapse: "collapse",
-    background: "white"
-};
-
-const actionButton = {
-    padding: "8px 12px",
-    marginRight: "8px",
-    background: "#2563eb",
-    color: "white",
-    border: "none",
-    cursor: "pointer"
-};
-
-const dangerButton = {
-    padding: "8px 12px",
-    background: "#dc2626",
-    color: "white",
-    border: "none",
-    cursor: "pointer"
-};
-
-const secondaryButton = {
-    padding: "8px 12px",
-    background: "#64748b",
-    color: "white",
-    border: "none",
-    cursor: "pointer"
-};
-
-const overlayStyle = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center"
-};
-
-const modalStyle = {
-    background: "white",
-    padding: "20px",
-    borderRadius: "8px",
-    width: "360px"
-};
-
-const inputStyle = {
-    width: "100%",
-    padding: "10px",
-    margin: "8px 0",
-    border: "1px solid #cbd5e1",
-    boxSizing: "border-box"
-};
