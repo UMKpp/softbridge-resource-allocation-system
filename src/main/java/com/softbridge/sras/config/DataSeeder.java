@@ -13,6 +13,7 @@ import com.softbridge.sras.repository.SkillRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -29,17 +30,20 @@ public class DataSeeder implements CommandLineRunner {
     private final EmployeeSkillRepository employeeSkillRepository;
     private final ProjectRepository projectRepository;
     private final ProjectAllocationRepository projectAllocationRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(EmployeeRepository employeeRepository,
                       SkillRepository skillRepository,
                       EmployeeSkillRepository employeeSkillRepository,
                       ProjectRepository projectRepository,
-                      ProjectAllocationRepository projectAllocationRepository) {
+                      ProjectAllocationRepository projectAllocationRepository,
+                      PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.skillRepository = skillRepository;
         this.employeeSkillRepository = employeeSkillRepository;
         this.projectRepository = projectRepository;
         this.projectAllocationRepository = projectAllocationRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -175,7 +179,7 @@ public class DataSeeder implements CommandLineRunner {
             Employee employee = new Employee();
             employee.setEmployeeId(employeeId);
             employee.setUsername(username);
-            employee.setPassword("SoftBridge@123");
+            employee.setPassword(passwordEncoder.encode("SoftBridge@123"));
             employee.setFullName(capitalize(firstName) + " " + lastName);
             employee.setEmail(email);
             employee.setDepartment(department);
