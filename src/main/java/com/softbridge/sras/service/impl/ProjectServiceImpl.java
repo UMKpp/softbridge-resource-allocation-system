@@ -19,6 +19,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project createProject(Project project) {
+        normalizeRequiredSkill(project);
         return projectRepository.save(project);
     }
 
@@ -41,6 +42,9 @@ public class ProjectServiceImpl implements ProjectService {
         existingProject.setClientName(project.getClientName());
         existingProject.setDescription(project.getDescription());
         existingProject.setStatus(project.getStatus());
+        existingProject.setRequiredSkillName(project.getRequiredSkillName());
+        existingProject.setRequiredSkillLevel(project.getRequiredSkillLevel());
+        normalizeRequiredSkill(existingProject);
 
         return projectRepository.save(existingProject);
     }
@@ -49,5 +53,16 @@ public class ProjectServiceImpl implements ProjectService {
     public void deleteProject(Long id) {
         Project existingProject = getProjectById(id);
         projectRepository.delete(existingProject);
+    }
+
+    private void normalizeRequiredSkill(Project project) {
+        if (project.getRequiredSkillName() != null) {
+            String requiredSkillName = project.getRequiredSkillName().trim();
+            project.setRequiredSkillName(requiredSkillName.isBlank() ? null : requiredSkillName);
+        }
+
+        if (project.getRequiredSkillName() != null && project.getRequiredSkillLevel() == null) {
+            project.setRequiredSkillLevel(1);
+        }
     }
 }
