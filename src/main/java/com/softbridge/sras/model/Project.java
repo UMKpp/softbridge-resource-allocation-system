@@ -33,6 +33,6 @@ public class Project {
     private String requiredSkillName;
 
     @Min(value = 1, message = "Required skill level must be at least 1")
-    @Max(value = 5, message = "Required skill level must be at most 5")
+    @Max(value = 3, message = "Required skill level must be at most 3")
     private Integer requiredSkillLevel;
 }
