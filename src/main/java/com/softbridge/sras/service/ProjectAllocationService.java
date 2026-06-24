@@ -9,9 +9,13 @@ public interface ProjectAllocationService {
 
     ProjectAllocation allocateEmployee(ProjectAllocation allocation);
 
+    ProjectAllocationResponse assignEmployeeToProject(Long projectId, String employeeId, String allocatedRole, boolean allowOverride);
+
     List<ProjectAllocationResponse> getAllAllocations();
 
     List<ProjectAllocationResponse> getTeamByProjectId(Long projectId);
+
+    List<ProjectAllocationResponse> getAllocationsByEmployeeId(String employeeId);
 
     void removeAllocation(Long id);
 }
