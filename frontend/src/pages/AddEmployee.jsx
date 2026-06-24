@@ -1,7 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import Sidebar from "../components/Sidebar";
-import { authHeader } from "../auth";
+import { api, authConfig } from "../api";
 
 const initialForm = {
     employeeId: "",
@@ -16,6 +15,7 @@ const initialForm = {
 
 export default function AddEmployee() {
     const [form, setForm] = useState(initialForm);
+    const [loading, setLoading] = useState(false);
 
     const updateField = (field, value) => {
         setForm((current) => ({
@@ -32,73 +32,54 @@ export default function AddEmployee() {
             return;
         }
 
-        try {
-            await axios.post("http://localhost:8081/employees", form, {
-                headers: authHeader()
-            });
+        setLoading(true);
 
-            alert("Employee Added Successfully");
+        try {
+            await api.post("/employees", form, authConfig());
             setForm(initialForm);
         } catch (err) {
             alert(err.response?.data?.message || "Failed to add employee");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div style={{ display: "flex", minHeight: "100vh", textAlign: "left" }}>
+        <div className="app-shell">
             <Sidebar />
 
-            <main style={mainStyle}>
-                <h2>Add Employee</h2>
-
-                <div style={formStyle}>
-                    <input placeholder="Employee ID" value={form.employeeId} onChange={(e) => updateField("employeeId", e.target.value)} style={inputStyle} />
-                    <input placeholder="Username" value={form.username} onChange={(e) => updateField("username", e.target.value)} style={inputStyle} />
-                    <input type="password" placeholder="Password" value={form.password} onChange={(e) => updateField("password", e.target.value)} style={inputStyle} />
-                    <input placeholder="Full name" value={form.fullName} onChange={(e) => updateField("fullName", e.target.value)} style={inputStyle} />
-                    <input placeholder="Email" value={form.email} onChange={(e) => updateField("email", e.target.value)} style={inputStyle} />
-                    <input placeholder="Department" value={form.department} onChange={(e) => updateField("department", e.target.value)} style={inputStyle} />
-                    <input placeholder="Job role" value={form.jobRole} onChange={(e) => updateField("jobRole", e.target.value)} style={inputStyle} />
-                    <select value={form.userType} onChange={(e) => updateField("userType", e.target.value)} style={inputStyle}>
-                        <option value="HR">HR</option>
-                        <option value="PM">PM</option>
-                        <option value="EMPLOYEE">EMPLOYEE</option>
-                    </select>
-
-                    <button onClick={handleSubmit} style={btnStyle}>
-                        Save Employee
-                    </button>
+            <main className="content">
+                <div className="page-header">
+                    <div>
+                        <p className="eyebrow">Employees</p>
+                        <h1 className="page-title">Add Employee</h1>
+                        <p className="page-subtitle">Create a new HR, PM, or employee account.</p>
+                    </div>
                 </div>
+
+                <section className="panel">
+                    <div className="form-grid">
+                        <input className="field" placeholder="Employee ID" value={form.employeeId} onChange={(e) => updateField("employeeId", e.target.value)} />
+                        <input className="field" placeholder="Username" value={form.username} onChange={(e) => updateField("username", e.target.value)} />
+                        <input className="field" type="password" placeholder="Password" value={form.password} onChange={(e) => updateField("password", e.target.value)} />
+                        <input className="field" placeholder="Full name" value={form.fullName} onChange={(e) => updateField("fullName", e.target.value)} />
+                        <input className="field" placeholder="Email" value={form.email} onChange={(e) => updateField("email", e.target.value)} />
+                        <input className="field" placeholder="Department" value={form.department} onChange={(e) => updateField("department", e.target.value)} />
+                        <input className="field" placeholder="Job role" value={form.jobRole} onChange={(e) => updateField("jobRole", e.target.value)} />
+                        <select className="field" value={form.userType} onChange={(e) => updateField("userType", e.target.value)}>
+                            <option value="HR">HR</option>
+                            <option value="PM">PM</option>
+                            <option value="EMPLOYEE">EMPLOYEE</option>
+                        </select>
+                    </div>
+
+                    <div className="actions">
+                        <button onClick={handleSubmit} className="primary-button" disabled={loading}>
+                            {loading ? "Saving" : "Save Employee"}
+                        </button>
+                    </div>
+                </section>
             </main>
         </div>
     );
 }
-
-const mainStyle = {
-    flex: 1,
-    padding: "30px",
-    backgroundColor: "#f8fafc"
-};
-
-const formStyle = {
-    maxWidth: "480px",
-    marginTop: "20px"
-};
-
-const inputStyle = {
-    width: "100%",
-    padding: "10px",
-    margin: "8px 0",
-    border: "1px solid #cbd5e1",
-    boxSizing: "border-box"
-};
-
-const btnStyle = {
-    width: "100%",
-    padding: "10px",
-    marginTop: "10px",
-    backgroundColor: "#2563eb",
-    color: "white",
-    border: "none",
-    cursor: "pointer"
-};
