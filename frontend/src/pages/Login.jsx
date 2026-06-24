@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { api } from "../api";
 import { getDashboardPath } from "../auth";
 
 export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleLogin = async () => {
@@ -14,8 +15,10 @@ export default function Login() {
             return;
         }
 
+        setLoading(true);
+
         try {
-            const res = await axios.post("http://localhost:8081/auth/login", {
+            const res = await api.post("/auth/login", {
                 username,
                 password
             });
@@ -34,61 +37,28 @@ export default function Login() {
                 localStorage.setItem("employeeId", employeeId);
             }
 
-            alert("Login Success!");
             navigate(getDashboardPath(role), { replace: true });
         } catch (err) {
             alert(err.response?.data?.message || "Login Failed");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div style={{
-            textAlign: "center",
-            marginTop: "120px",
-            fontFamily: "Arial"
-        }}>
-            <h2>SoftBridge SRAS Login</h2>
+        <div className="login-page">
+            <div className="login-card">
+                <p className="eyebrow">Resource Allocation System</p>
+                <h1 className="page-title">SoftBridge SRAS</h1>
+                <p className="page-subtitle">Sign in to manage resources, projects, skills, and assignments.</p>
 
-            <div style={{ marginTop: "20px" }}>
-                <input
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    style={{
-                        padding: "10px",
-                        marginBottom: "10px",
-                        width: "200px"
-                    }}
-                />
+                <div className="form-grid" style={{ marginTop: "24px" }}>
+                    <input className="field" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                    <input className="field" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                </div>
 
-                <br />
-
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    style={{
-                        padding: "10px",
-                        marginBottom: "10px",
-                        width: "200px"
-                    }}
-                />
-
-                <br />
-
-                <button
-                    onClick={handleLogin}
-                    style={{
-                        padding: "10px 20px",
-                        cursor: "pointer",
-                        backgroundColor: "#007bff",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "5px"
-                    }}
-                >
-                    Login
+                <button onClick={handleLogin} className="primary-button" style={{ width: "100%", marginTop: "16px" }} disabled={loading}>
+                    {loading ? "Signing in" : "Login"}
                 </button>
             </div>
         </div>
