@@ -1,6 +1,7 @@
 package com.softbridge.sras.service.impl;
 
 import com.softbridge.sras.exception.ResourceNotFoundException;
+import com.softbridge.sras.dto.ProjectManagerAvailabilityResponse;
 import com.softbridge.sras.model.Employee;
 import com.softbridge.sras.model.Project;
 import com.softbridge.sras.repository.EmployeeRepository;
@@ -42,6 +43,18 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public List<ProjectManagerAvailabilityResponse> getProjectManagers() {
+        return employeeRepository.findByUserType("PM")
+                .stream()
+                .map(projectManager -> new ProjectManagerAvailabilityResponse(
+                        projectManager.getEmployeeId(),
+                        projectManager.getUsername(),
+                        projectRepository.existsByProjectManager(projectManager) ? "UNAVAILABLE" : "AVAILABLE"
+                ))
+                .toList();
+    }
+
+    @Override
     public Project getProjectById(Long id) {
         return projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + id));
@@ -55,6 +68,14 @@ public class ProjectServiceImpl implements ProjectService {
 
         if (!"PM".equals(projectManager.getUserType())) {
             throw new IllegalArgumentException("Assigned project manager must have PM role");
+        }
+
+        boolean assignedToAnotherProject = projectRepository.findByProjectManager(projectManager)
+                .stream()
+                .anyMatch(existingProject -> !existingProject.getProjectId().equals(project.getProjectId()));
+
+        if (assignedToAnotherProject) {
+            throw new IllegalArgumentException("Project manager is unavailable");
         }
 
         project.setProjectManager(projectManager);
