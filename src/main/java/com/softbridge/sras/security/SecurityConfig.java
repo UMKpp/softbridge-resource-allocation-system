@@ -40,6 +40,13 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"
                         ).permitAll()
+
+                        .requestMatchers("/employees/**", "/skills/**")
+                        .hasAnyRole("HR", "ADMIN")
+
+                        .requestMatchers("/projects/**", "/allocations/**", "/employee-skills/**")
+                        .hasAnyRole("PROJECT_MANAGER", "ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
