@@ -10,5 +10,6 @@ public class EmployeeSkillResponse {
     private Long id;
     private String employeeId;
     private String skillName;
+    private String skillCategory;
     private Integer skillLevel;
 }
