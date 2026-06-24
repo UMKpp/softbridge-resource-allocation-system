@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import Sidebar from "../components/Sidebar";
-import { authHeader, getAuth } from "../auth";
+import { api, authConfig } from "../api";
+import { getAuth } from "../auth";
 
 export default function Dashboard() {
-    const { role } = getAuth();
+    const { role, employeeId } = getAuth();
+    const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         employees: 0,
         projects: 0,
-        skills: 0
+        skills: 0,
+        assignments: 0
     });
 
     useEffect(() => {
@@ -16,20 +18,31 @@ export default function Dashboard() {
     }, []);
 
     const fetchStats = async () => {
+        setLoading(true);
+
         try {
+            if (role === "EMPLOYEE") {
+                const [projectsRes, skillsRes] = await Promise.all([
+                    api.get("/projects/my", authConfig()),
+                    api.get("/skills/me", authConfig())
+                ]);
+
+                setStats({
+                    employees: 1,
+                    projects: projectsRes.data.length,
+                    skills: skillsRes.data.length,
+                    assignments: projectsRes.data.length
+                });
+                return;
+            }
+
             const requests = [
-                axios.get("http://localhost:8081/employees", {
-                    headers: authHeader()
-                }),
-                axios.get("http://localhost:8081/projects", {
-                    headers: authHeader()
-                })
+                api.get("/employees", authConfig()),
+                api.get("/projects", authConfig())
             ];
 
             if (role === "HR") {
-                requests.push(axios.get("http://localhost:8081/skills", {
-                    headers: authHeader()
-                }));
+                requests.push(api.get("/skills", authConfig()));
             }
 
             const responses = await Promise.all(requests);
@@ -37,66 +50,80 @@ export default function Dashboard() {
             setStats({
                 employees: responses[0].data.length,
                 projects: responses[1].data.length,
-                skills: responses[2]?.data.length || 0
+                skills: responses[2]?.data.length || 0,
+                assignments: 0
             });
         } catch (err) {
             setStats({
                 employees: 0,
                 projects: 0,
-                skills: 0
+                skills: 0,
+                assignments: 0
             });
+        } finally {
+            setLoading(false);
         }
     };
 
+    const title = role === "HR" ? "HR Dashboard" : role === "PM" ? "Project Manager Dashboard" : "Employee Dashboard";
+    const subtitle = role === "EMPLOYEE"
+        ? `Employee ID ${employeeId || ""}`
+        : "Manage resource visibility, skill matching, and project allocation.";
+
     return (
-        <div style={{ display: "flex", minHeight: "100vh", textAlign: "left" }}>
+        <div className="app-shell">
             <Sidebar />
 
-            <main style={mainStyle}>
-                <h1>{role === "HR" ? "HR Dashboard" : "Project Manager Dashboard"}</h1>
-                <p>Welcome to SoftBridge Resource Allocation System</p>
-
-                <div style={cardContainer}>
-                    <div style={card}>
-                        <h2>{stats.employees}</h2>
-                        <p>Total Employees</p>
+            <main className="content">
+                <div className="page-header">
+                    <div>
+                        <p className="eyebrow">SoftBridge SRAS</p>
+                        <h1 className="page-title">{title}</h1>
+                        <p className="page-subtitle">{subtitle}</p>
                     </div>
-
-                    <div style={card}>
-                        <h2>{stats.projects}</h2>
-                        <p>Active Projects</p>
-                    </div>
-
-                    {role === "HR" && (
-                        <div style={card}>
-                            <h2>{stats.skills}</h2>
-                            <p>Skills Tracked</p>
-                        </div>
-                    )}
                 </div>
+
+                {loading ? (
+                    <div className="loading-state">Loading dashboard</div>
+                ) : (
+                    <div className="stats-grid">
+                        {role !== "EMPLOYEE" && (
+                            <div className="stat-card">
+                                <p className="stat-value">{stats.employees}</p>
+                                <p className="stat-label">Employees</p>
+                            </div>
+                        )}
+
+                        <div className="stat-card">
+                            <p className="stat-value">{stats.projects}</p>
+                            <p className="stat-label">{role === "EMPLOYEE" ? "Assigned Projects" : "Projects"}</p>
+                        </div>
+
+                        {(role === "HR" || role === "EMPLOYEE") && (
+                            <div className="stat-card">
+                                <p className="stat-value">{stats.skills}</p>
+                                <p className="stat-label">{role === "EMPLOYEE" ? "My Skills" : "Global Skills"}</p>
+                            </div>
+                        )}
+
+                        {role === "EMPLOYEE" && (
+                            <div className="stat-card">
+                                <p className="stat-value">{stats.assignments}</p>
+                                <p className="stat-label">Active Assignments</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <section className="panel">
+                    <h2 className="card-title">Work Queue</h2>
+                    <p className="card-meta">
+                        {role === "HR" && "Review employee records, skill catalog quality, and allocation overrides."}
+                        {role === "PM" && "Create projects, review employee skills, and assign qualified team members."}
+                        {role === "EMPLOYEE" && "Keep your profile and skill levels current so managers can allocate accurately."}
+                    </p>
+                </section>
             </main>
         </div>
     );
 }
-
-const mainStyle = {
-    flex: 1,
-    padding: "30px",
-    backgroundColor: "#f1f5f9"
-};
-
-const cardContainer = {
-    display: "flex",
-    gap: "20px",
-    marginTop: "30px",
-    flexWrap: "wrap"
-};
-
-const card = {
-    background: "white",
-    padding: "20px",
-    borderRadius: "8px",
-    width: "200px",
-    textAlign: "center",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-};
