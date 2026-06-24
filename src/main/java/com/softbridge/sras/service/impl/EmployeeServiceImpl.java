@@ -8,6 +8,7 @@ import com.softbridge.sras.repository.EmployeeRepository;
 import com.softbridge.sras.repository.EmployeeSkillRepository;
 import com.softbridge.sras.repository.ProjectAllocationRepository;
 import com.softbridge.sras.service.EmployeeService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,17 +19,21 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final ProjectAllocationRepository allocationRepository;
     private final EmployeeSkillRepository employeeSkillRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public EmployeeServiceImpl(EmployeeRepository employeeRepository,
                                ProjectAllocationRepository allocationRepository,
-                               EmployeeSkillRepository employeeSkillRepository) {
+                               EmployeeSkillRepository employeeSkillRepository,
+                               PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.allocationRepository = allocationRepository;
         this.employeeSkillRepository = employeeSkillRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public Employee createEmployee(Employee employee) {
+        employee.setPassword(encodePassword(employee.getPassword()));
         return employeeRepository.save(employee);
     }
 
@@ -139,7 +144,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                                 "Employee not found with id: " + id));
 
         existingEmployee.setUsername(employee.getUsername());
-        existingEmployee.setPassword(employee.getPassword());
+        existingEmployee.setPassword(encodePassword(employee.getPassword()));
         existingEmployee.setFullName(employee.getFullName());
         existingEmployee.setEmail(employee.getEmail());
         existingEmployee.setDepartment(employee.getDepartment());
@@ -158,5 +163,13 @@ public class EmployeeServiceImpl implements EmployeeService {
                                 "Employee not found with id: " + id));
 
         employeeRepository.delete(employee);
+    }
+
+    private String encodePassword(String password) {
+        if (password == null || password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$")) {
+            return password;
+        }
+
+        return passwordEncoder.encode(password);
     }
 }
