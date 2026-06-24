@@ -1,122 +1,83 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import Sidebar from "../components/Sidebar";
+import { authHeader, getAuth } from "../auth";
 
 export default function Dashboard() {
-
-    const navigate = useNavigate();
-
-    const [employeesCount, setEmployeesCount] = useState(0);
-    const [projectsCount, setProjectsCount] = useState(0);
-    const [skillsCount, setSkillsCount] = useState(0);
+    const { role } = getAuth();
+    const [stats, setStats] = useState({
+        employees: 0,
+        projects: 0,
+        skills: 0
+    });
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-            navigate("/");
-        }
-
         fetchStats();
     }, []);
 
     const fetchStats = async () => {
         try {
-            const token = localStorage.getItem("token");
+            const requests = [
+                axios.get("http://localhost:8081/employees", {
+                    headers: authHeader()
+                }),
+                axios.get("http://localhost:8081/projects", {
+                    headers: authHeader()
+                })
+            ];
 
-            // Employees
-            const empRes = await axios.get("http://localhost:8081/employees", {
-                headers: { Authorization: `Bearer ${token}` }
+            if (role === "HR") {
+                requests.push(axios.get("http://localhost:8081/skills", {
+                    headers: authHeader()
+                }));
+            }
+
+            const responses = await Promise.all(requests);
+
+            setStats({
+                employees: responses[0].data.length,
+                projects: responses[1].data.length,
+                skills: responses[2]?.data.length || 0
             });
-
-            setEmployeesCount(empRes.data.length);
-
-            // Projects (if backend exists)
-            const proRes = await axios.get("http://localhost:8081/projects", {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            setProjectsCount(proRes.data.length);
-
-            // Skills (if backend exists)
-            const skillRes = await axios.get("http://localhost:8081/skills", {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            setSkillsCount(skillRes.data.length);
-
         } catch (err) {
-            console.log("STATS ERROR:", err);
+            setStats({
+                employees: 0,
+                projects: 0,
+                skills: 0
+            });
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem("token");
-        navigate("/");
-    };
-
     return (
-        <div style={{ display: "flex", minHeight: "100vh" }}>
+        <div style={{ display: "flex", minHeight: "100vh", textAlign: "left" }}>
+            <Sidebar />
 
-            {/* SIDEBAR */}
-            <div style={sidebarStyle}>
-                <h2 style={{ color: "#38bdf8" }}>SRAS</h2>
-
-                <nav style={{ marginTop: "30px" }}>
-                    <Link to="/dashboard" style={linkStyle}>Dashboard</Link>
-                    <Link to="/employees" style={linkStyle}>Employees</Link>
-                    <Link to="/add-employee" style={linkStyle}>Add Employee</Link>
-                    <Link to="/projects" style={linkStyle}>Projects</Link>
-                    <Link to="/skills" style={linkStyle}>Skills</Link>
-                </nav>
-
-                <button onClick={logout} style={logoutBtn}>
-                    Logout
-                </button>
-            </div>
-
-            {/*main dash*/}
-            <div style={mainStyle}>
-
-                <h1>HR Dashboard</h1>
+            <main style={mainStyle}>
+                <h1>{role === "HR" ? "HR Dashboard" : "Project Manager Dashboard"}</h1>
                 <p>Welcome to SoftBridge Resource Allocation System</p>
 
                 <div style={cardContainer}>
-
                     <div style={card}>
-                        <h2>{employeesCount}</h2>
+                        <h2>{stats.employees}</h2>
                         <p>Total Employees</p>
                     </div>
 
                     <div style={card}>
-                        <h2>{projectsCount}</h2>
+                        <h2>{stats.projects}</h2>
                         <p>Active Projects</p>
                     </div>
 
-                    <div style={card}>
-                        <h2>{skillsCount}</h2>
-                        <p>Skills Tracked</p>
-                    </div>
-
+                    {role === "HR" && (
+                        <div style={card}>
+                            <h2>{stats.skills}</h2>
+                            <p>Skills Tracked</p>
+                        </div>
+                    )}
                 </div>
-
-            </div>
-
+            </main>
         </div>
     );
 }
-
-/* style*/
-
-const sidebarStyle = {
-    width: "240px",
-    backgroundColor: "#0f172a",
-    color: "white",
-    padding: "20px",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between"
-};
 
 const mainStyle = {
     flex: 1,
@@ -124,31 +85,17 @@ const mainStyle = {
     backgroundColor: "#f1f5f9"
 };
 
-const linkStyle = {
-    display: "block",
-    color: "#cbd5e1",
-    textDecoration: "none",
-    margin: "15px 0"
-};
-
-const logoutBtn = {
-    padding: "10px",
-    background: "#ef4444",
-    color: "white",
-    border: "none",
-    cursor: "pointer"
-};
-
 const cardContainer = {
     display: "flex",
     gap: "20px",
-    marginTop: "30px"
+    marginTop: "30px",
+    flexWrap: "wrap"
 };
 
 const card = {
     background: "white",
     padding: "20px",
-    borderRadius: "10px",
+    borderRadius: "8px",
     width: "200px",
     textAlign: "center",
     boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
