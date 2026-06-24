@@ -5,6 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -54,5 +56,17 @@ public class GlobalExceptionHandler {
         error.put("message", ex.getMessage());
 
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AuthenticationFailedException.class)
+    public ResponseEntity<Map<String, Object>> handleAuthenticationException(
+            AuthenticationFailedException ex) {
+
+        Map<String, Object> error = new HashMap<>();
+        error.put("error", "Unauthorized");
+        error.put("message", ex.getMessage());
+        error.put("status", 401);
+
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 }
