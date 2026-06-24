@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import Sidebar from "../components/Sidebar";
-import { authHeader, getAuth } from "../auth";
+import { api, authConfig } from "../api";
+import { getAuth } from "../auth";
 
 export default function Profile() {
     const { employeeId } = getAuth();
+    const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
 
     useEffect(() => {
@@ -12,14 +13,15 @@ export default function Profile() {
     }, []);
 
     const fetchProfile = async () => {
-        try {
-            const res = await axios.get(`http://localhost:8081/employees/${employeeId}`, {
-                headers: authHeader()
-            });
+        setLoading(true);
 
+        try {
+            const res = await api.get(`/employees/${employeeId}`, authConfig());
             setProfile(res.data);
         } catch (err) {
             setProfile(null);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -32,11 +34,7 @@ export default function Profile() {
 
     const updateProfile = async () => {
         try {
-            await axios.put(`http://localhost:8081/employees/${employeeId}`, profile, {
-                headers: authHeader()
-            });
-
-            alert("Profile Updated Successfully");
+            await api.put(`/employees/${employeeId}`, profile, authConfig());
             fetchProfile();
         } catch (err) {
             alert(err.response?.data?.message || "Update Failed");
@@ -44,57 +42,52 @@ export default function Profile() {
     };
 
     return (
-        <div style={{ display: "flex", minHeight: "100vh", textAlign: "left" }}>
+        <div className="app-shell">
             <Sidebar />
 
-            <main style={mainStyle}>
-                <h2>My Profile</h2>
-
-                {profile && (
-                    <div style={formStyle}>
-                        <input value={profile.employeeId || ""} disabled style={inputStyle} />
-                        <input value={profile.username || ""} disabled style={inputStyle} />
-                        <input value={profile.fullName || ""} onChange={(e) => updateField("fullName", e.target.value)} placeholder="Full name" style={inputStyle} />
-                        <input value={profile.email || ""} onChange={(e) => updateField("email", e.target.value)} placeholder="Email" style={inputStyle} />
-                        <input value={profile.department || ""} onChange={(e) => updateField("department", e.target.value)} placeholder="Department" style={inputStyle} />
-                        <input value={profile.jobRole || ""} onChange={(e) => updateField("jobRole", e.target.value)} placeholder="Job role" style={inputStyle} />
-                        <input value={profile.userType || ""} disabled style={inputStyle} />
-
-                        <button onClick={updateProfile} style={btnStyle}>
-                            Update Profile
-                        </button>
+            <main className="content">
+                <div className="page-header">
+                    <div>
+                        <p className="eyebrow">Profile</p>
+                        <h1 className="page-title">Employee Profile</h1>
+                        <p className="page-subtitle">Keep your personal work profile accurate for allocation planning.</p>
                     </div>
-                )}
+                </div>
+
+                <section className="panel">
+                    {loading ? (
+                        <div className="loading-state">Loading profile</div>
+                    ) : !profile ? (
+                        <div className="empty-state">Profile unavailable</div>
+                    ) : (
+                        <>
+                            <div className="stats-grid">
+                                <div className="stat-card">
+                                    <p className="stat-value">{profile.employeeId}</p>
+                                    <p className="stat-label">Employee ID</p>
+                                </div>
+                                <div className="stat-card">
+                                    <p className="stat-value">{profile.userType}</p>
+                                    <p className="stat-label">Access Role</p>
+                                </div>
+                            </div>
+
+                            <div className="form-grid">
+                                <input className="field" value={profile.username || ""} disabled />
+                                <input className="field" value={profile.fullName || ""} onChange={(e) => updateField("fullName", e.target.value)} placeholder="Full name" />
+                                <input className="field" value={profile.email || ""} onChange={(e) => updateField("email", e.target.value)} placeholder="Email" />
+                                <input className="field" value={profile.department || ""} onChange={(e) => updateField("department", e.target.value)} placeholder="Department" />
+                                <input className="field" value={profile.jobRole || ""} onChange={(e) => updateField("jobRole", e.target.value)} placeholder="Job role" />
+                                <input className="field" value={profile.userType || ""} disabled />
+                            </div>
+
+                            <div className="actions">
+                                <button className="primary-button" onClick={updateProfile}>Update Profile</button>
+                            </div>
+                        </>
+                    )}
+                </section>
             </main>
         </div>
     );
 }
-
-const mainStyle = {
-    flex: 1,
-    padding: "30px",
-    backgroundColor: "#f8fafc"
-};
-
-const formStyle = {
-    maxWidth: "480px",
-    marginTop: "20px"
-};
-
-const inputStyle = {
-    width: "100%",
-    padding: "10px",
-    margin: "8px 0",
-    border: "1px solid #cbd5e1",
-    boxSizing: "border-box"
-};
-
-const btnStyle = {
-    width: "100%",
-    padding: "10px",
-    marginTop: "10px",
-    backgroundColor: "#2563eb",
-    color: "white",
-    border: "none",
-    cursor: "pointer"
-};
