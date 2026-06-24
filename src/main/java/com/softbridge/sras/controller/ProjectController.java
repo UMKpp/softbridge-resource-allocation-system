@@ -82,7 +82,7 @@ public class ProjectController {
         Employee actor = roleService.getCurrentEmployee(authentication);
         boolean hrAccess = roleService.hasRole(authentication, "HR");
 
-        return assignmentService.assignEmployee(projectId, employeeId, request.getAllocatedRole(), actor, hrAccess);
+        return assignmentService.assignEmployee(projectId, employeeId, request.getAssignmentRole(), actor, hrAccess);
     }
 
     @GetMapping("/{projectId}/team")
