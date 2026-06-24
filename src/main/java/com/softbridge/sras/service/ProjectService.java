@@ -1,6 +1,7 @@
 package com.softbridge.sras.service;
 
 import com.softbridge.sras.model.Project;
+import com.softbridge.sras.dto.ProjectManagerAvailabilityResponse;
 
 import java.util.List;
 
@@ -11,6 +12,8 @@ public interface ProjectService {
     List<Project> getAllProjects();
 
     List<Project> getProjectsByProjectManager(String projectManagerId);
+
+    List<ProjectManagerAvailabilityResponse> getProjectManagers();
 
     Project getProjectById(Long id);
 
