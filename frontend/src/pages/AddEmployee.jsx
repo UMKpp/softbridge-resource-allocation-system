@@ -29,6 +29,12 @@ export default function AddEmployee() {
             alert("Employee Added Successfully!");
             console.log(res.data);
 
+            // clear form
+            setUsername("");
+            setPassword("");
+            setDepartment("");
+            setUserType("");
+
         } catch (err) {
             console.log(err);
             alert("Failed to add employee");
@@ -39,24 +45,37 @@ export default function AddEmployee() {
         <div style={{ padding: "30px" }}>
             <h2>Add Employee</h2>
 
-            <input placeholder="Username"
-                   onChange={(e) => setUsername(e.target.value)} />
+            <input
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+            />
             <br /><br />
 
-            <input placeholder="Password"
-                   onChange={(e) => setPassword(e.target.value)} />
+            <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+            />
             <br /><br />
 
-            <input placeholder="Department"
-                   onChange={(e) => setDepartment(e.target.value)} />
+            <input
+                placeholder="Department"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+            />
             <br /><br />
 
-            <input placeholder="User Type (HR/ADMIN)"
-                   onChange={(e) => setUserType(e.target.value)} />
+            <input
+                placeholder="User Type (HR / ADMIN / EMPLOYEE)"
+                value={userType}
+                onChange={(e) => setUserType(e.target.value)}
+            />
             <br /><br />
 
             <button onClick={handleSubmit}>
-                Add Employee
+                Save Employee
             </button>
         </div>
     );
