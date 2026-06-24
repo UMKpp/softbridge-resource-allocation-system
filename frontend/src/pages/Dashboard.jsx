@@ -23,7 +23,7 @@ export default function Dashboard() {
         try {
             if (role === "EMPLOYEE") {
                 const [projectsRes, skillsRes] = await Promise.all([
-                    api.get("/projects/my", authConfig()),
+                    api.get("/projects/employee", authConfig()),
                     api.get("/skills/me", authConfig())
                 ]);
 
@@ -32,6 +32,18 @@ export default function Dashboard() {
                     projects: projectsRes.data.length,
                     skills: skillsRes.data.length,
                     assignments: projectsRes.data.length
+                });
+                return;
+            }
+
+            if (role === "PM") {
+                const projectsRes = await api.get("/projects/my", authConfig());
+
+                setStats({
+                    employees: 0,
+                    projects: projectsRes.data.length,
+                    skills: 0,
+                    assignments: 0
                 });
                 return;
             }
@@ -87,7 +99,7 @@ export default function Dashboard() {
                     <div className="loading-state">Loading dashboard</div>
                 ) : (
                     <div className="stats-grid">
-                        {role !== "EMPLOYEE" && (
+                        {role === "HR" && (
                             <div className="stat-card">
                                 <p className="stat-value">{stats.employees}</p>
                                 <p className="stat-label">Employees</p>
@@ -96,7 +108,7 @@ export default function Dashboard() {
 
                         <div className="stat-card">
                             <p className="stat-value">{stats.projects}</p>
-                            <p className="stat-label">{role === "EMPLOYEE" ? "Assigned Projects" : "Projects"}</p>
+                            <p className="stat-label">{role === "EMPLOYEE" || role === "PM" ? "Assigned Projects" : "Projects"}</p>
                         </div>
 
                         {(role === "HR" || role === "EMPLOYEE") && (
@@ -119,7 +131,7 @@ export default function Dashboard() {
                     <h2 className="card-title">Work Queue</h2>
                     <p className="card-meta">
                         {role === "HR" && "Review employee records, skill catalog quality, and allocation overrides."}
-                        {role === "PM" && "Create projects, review employee skills, and assign qualified team members."}
+                        {role === "PM" && "Manage your assigned project, search employees by skill, and build the project team."}
                         {role === "EMPLOYEE" && "Keep your profile and skill levels current so managers can allocate accurately."}
                     </p>
                 </section>
