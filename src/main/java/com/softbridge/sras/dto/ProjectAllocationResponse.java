@@ -10,9 +10,13 @@ import java.time.LocalDate;
 public class ProjectAllocationResponse {
 
     private Long allocationId;
+    private Long projectId;
     private String employeeId;
     private String employeeName;
     private String projectName;
+    private String clientName;
     private String allocatedRole;
+    private String requiredSkillName;
+    private Integer requiredSkillLevel;
     private LocalDate allocationDate;
 }
