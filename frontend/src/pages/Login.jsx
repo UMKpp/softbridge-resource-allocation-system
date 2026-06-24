@@ -1,52 +1,43 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { getDashboardPath } from "../auth";
 
 export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const navigate = useNavigate();
 
     const handleLogin = async () => {
-
-        // ✅ Validation
         if (!username || !password) {
             alert("Please enter username and password");
             return;
         }
 
         try {
-            // 🔥 Call backend login API
             const res = await axios.post("http://localhost:8081/auth/login", {
                 username,
-                password,
+                password
             });
 
-            console.log("LOGIN RESPONSE:", res.data);
+            const { token, role, employeeId } = res.data;
 
-            const token = res.data.token;
-
-            // ❌ If token not received
-            if (!token) {
-                alert("Login failed: No token received");
+            if (!token || !role) {
+                alert("Login failed");
                 return;
             }
 
-            // ✅ Save token in browser
             localStorage.setItem("token", token);
+            localStorage.setItem("role", role);
+
+            if (employeeId) {
+                localStorage.setItem("employeeId", employeeId);
+            }
 
             alert("Login Success!");
-
-            console.log("JWT TOKEN:", token);
-
-            // 🚀 Redirect to dashboard
-            window.location.href = "/dashboard";
-
+            navigate(getDashboardPath(role), { replace: true });
         } catch (err) {
-            console.log("LOGIN ERROR:", err);
-
-            alert(
-                err.response?.data?.message ||
-                "Login Failed"
-            );
+            alert(err.response?.data?.message || "Login Failed");
         }
     };
 
@@ -59,7 +50,6 @@ export default function Login() {
             <h2>SoftBridge SRAS Login</h2>
 
             <div style={{ marginTop: "20px" }}>
-
                 <input
                     placeholder="Username"
                     value={username}
@@ -100,7 +90,6 @@ export default function Login() {
                 >
                     Login
                 </button>
-
             </div>
         </div>
     );
