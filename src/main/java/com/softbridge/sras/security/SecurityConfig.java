@@ -42,6 +42,9 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/pms")
+                        .hasRole("HR")
+
                         .requestMatchers(HttpMethod.GET, "/employees")
                         .hasRole("HR")
 
