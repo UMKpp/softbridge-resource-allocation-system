@@ -23,10 +23,6 @@ public class RoleService {
 
         String normalizedRole = role.trim().toUpperCase();
 
-        if (normalizedRole.equals("PROJECT_MANAGER")) {
-            return "PM";
-        }
-
         if (normalizedRole.equals("HR") || normalizedRole.equals("PM") || normalizedRole.equals("EMPLOYEE")) {
             return normalizedRole;
         }
