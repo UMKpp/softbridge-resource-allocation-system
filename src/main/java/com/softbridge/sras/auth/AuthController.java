@@ -7,6 +7,7 @@ import com.softbridge.sras.repository.EmployeeRepository;
 import com.softbridge.sras.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import com.softbridge.sras.exception.AuthenticationFailedException;
 
 @RestController
 @RequestMapping("/auth")
@@ -28,7 +29,8 @@ public class AuthController {
     public LoginResponse login(@RequestBody LoginRequest request) {
 
         Employee employee = employeeRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+                .orElseThrow(() ->
+                        new AuthenticationFailedException("Invalid username or password"));
 
         boolean passwordMatches = passwordEncoder.matches(
                 request.getPassword(),
@@ -36,7 +38,7 @@ public class AuthController {
         );
 
         if (!passwordMatches) {
-            throw new RuntimeException("Invalid username or password");
+            throw new AuthenticationFailedException("Invalid username or password");
         }
 
         String token = jwtService.generateToken(
