@@ -12,8 +12,7 @@ const navByRole = {
     ],
     PM: [
         { to: "/pm/dashboard", label: "Dashboard", icon: FaChartLine },
-        { to: "/projects", label: "Projects", icon: FaBriefcase },
-        { to: "/employees", label: "Employees", icon: FaUsers }
+        { to: "/projects", label: "Assigned Project", icon: FaBriefcase }
     ],
     EMPLOYEE: [
         { to: "/employee/dashboard", label: "Dashboard", icon: FaChartLine },
