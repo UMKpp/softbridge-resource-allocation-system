@@ -10,7 +10,11 @@ public interface ProjectService {
 
     List<Project> getAllProjects();
 
+    List<Project> getProjectsByProjectManager(String projectManagerId);
+
     Project getProjectById(Long id);
+
+    Project assignProjectManager(Long id, String projectManagerId);
 
     Project updateProject(Long id, Project project);
 
