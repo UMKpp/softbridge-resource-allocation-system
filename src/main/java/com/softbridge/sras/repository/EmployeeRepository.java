@@ -12,4 +12,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, String> {
     Optional<Employee> findByIdWithSkills(String employeeId);
 
     Optional<Employee> findByUsername(String username);
+
+    java.util.List<Employee> findByUserType(String userType);
 }
