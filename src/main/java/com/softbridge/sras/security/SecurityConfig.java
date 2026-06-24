@@ -42,8 +42,11 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/employees")
+                        .hasRole("HR")
+
                         .requestMatchers(HttpMethod.GET, "/employees/**")
-                        .hasAnyRole("HR", "PM", "EMPLOYEE")
+                        .hasAnyRole("HR", "EMPLOYEE")
 
                         .requestMatchers(HttpMethod.POST, "/employees/**")
                         .hasRole("HR")
@@ -54,11 +57,53 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/employees/**")
                         .hasRole("HR")
 
+                        .requestMatchers(HttpMethod.GET, "/skills/me")
+                        .hasRole("EMPLOYEE")
+
+                        .requestMatchers(HttpMethod.POST, "/skills/me")
+                        .hasRole("EMPLOYEE")
+
+                        .requestMatchers(HttpMethod.PUT, "/skills/me/**")
+                        .hasRole("EMPLOYEE")
+
+                        .requestMatchers(HttpMethod.DELETE, "/skills/me/**")
+                        .hasRole("EMPLOYEE")
+
                         .requestMatchers("/skills/**")
                         .hasRole("HR")
 
-                        .requestMatchers("/projects/**", "/allocations/**")
-                        .hasAnyRole("HR", "PM")
+                        .requestMatchers(HttpMethod.GET, "/projects/my")
+                        .hasRole("PM")
+
+                        .requestMatchers(HttpMethod.GET, "/projects/employee")
+                        .hasRole("EMPLOYEE")
+
+                        .requestMatchers(HttpMethod.POST, "/projects")
+                        .hasRole("HR")
+
+                        .requestMatchers(HttpMethod.GET, "/projects")
+                        .hasRole("HR")
+
+                        .requestMatchers(HttpMethod.PUT, "/projects/*/pm/*")
+                        .hasRole("HR")
+
+                        .requestMatchers(HttpMethod.POST, "/projects/*/assign/*")
+                        .hasAnyRole("PM", "HR")
+
+                        .requestMatchers(HttpMethod.GET, "/projects/*/team")
+                        .hasAnyRole("PM", "HR")
+
+                        .requestMatchers(HttpMethod.PUT, "/projects/*/complete")
+                        .hasRole("PM")
+
+                        .requestMatchers(HttpMethod.PUT, "/projects/*/change-team")
+                        .hasRole("PM")
+
+                        .requestMatchers("/projects/**")
+                        .hasRole("HR")
+
+                        .requestMatchers("/allocations/**")
+                        .hasRole("HR")
 
                         .requestMatchers(HttpMethod.GET, "/employee-skills/employees/search")
                         .hasAnyRole("HR", "PM")
