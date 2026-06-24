@@ -43,6 +43,9 @@ public class Employee {
     @NotBlank(message = "User type is required")
     private String userType;
 
+    @Transient
+    private String status;
+
     @JsonIgnore
     @OneToMany(mappedBy = "employee")
     private List<EmployeeSkill> skills;
