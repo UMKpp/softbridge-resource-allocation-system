@@ -5,11 +5,13 @@ export default function Employees() {
 
     const [employees, setEmployees] = useState([]);
     const [edit, setEdit] = useState(null);
+    const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
         fetchEmployees();
     }, []);
 
+    // get employees
     const fetchEmployees = async () => {
         try {
             const token = localStorage.getItem("token");
@@ -27,6 +29,7 @@ export default function Employees() {
         }
     };
 
+    // delete employee
     const deleteEmployee = async (id) => {
         try {
             const token = localStorage.getItem("token");
@@ -46,10 +49,8 @@ export default function Employees() {
         }
     };
 
+    // update employee
     const updateEmployee = async () => {
-
-        if (!edit) return;
-
         try {
             const token = localStorage.getItem("token");
 
@@ -65,6 +66,7 @@ export default function Employees() {
 
             alert("Employee Updated Successfully!");
 
+            setShowModal(false);
             setEdit(null);
             fetchEmployees();
 
@@ -76,9 +78,11 @@ export default function Employees() {
 
     return (
         <div style={{ padding: "30px" }}>
+
             <h2>Employees List</h2>
 
-            <table border="1" cellPadding="10" style={{ marginTop: "20px", width: "100%" }}>
+            {/* table*/}
+            <table border="1" cellPadding="10" style={{ width: "100%", marginTop: "20px" }}>
                 <thead>
                 <tr>
                     <th>ID</th>
@@ -98,7 +102,12 @@ export default function Employees() {
                         <td>{emp.department}</td>
 
                         <td>
-                            <button onClick={() => setEdit(emp)}>
+                            <button
+                                onClick={() => {
+                                    setEdit(emp);
+                                    setShowModal(true);
+                                }}
+                            >
                                 Edit
                             </button>
 
@@ -111,40 +120,76 @@ export default function Employees() {
                 </tbody>
             </table>
 
-            {/* EDIT FORM */}
-            {edit && (
-                <div style={{ marginTop: "20px" }}>
-                    <h3>Edit Employee</h3>
+            {/* model edit*/}
+            {showModal && edit && (
+                <div style={overlayStyle}>
+                    <div style={modalStyle}>
 
-                    <input
-                        value={edit.username}
-                        onChange={(e) =>
-                            setEdit({ ...edit, username: e.target.value })
-                        }
-                    />
-                    <br /><br />
+                        <h3>Edit Employee</h3>
 
-                    <input
-                        value={edit.department}
-                        onChange={(e) =>
-                            setEdit({ ...edit, department: e.target.value })
-                        }
-                    />
-                    <br /><br />
+                        <input
+                            value={edit.username}
+                            onChange={(e) =>
+                                setEdit({ ...edit, username: e.target.value })
+                            }
+                            placeholder="Username"
+                        />
+                        <br /><br />
 
-                    <input
-                        value={edit.userType}
-                        onChange={(e) =>
-                            setEdit({ ...edit, userType: e.target.value })
-                        }
-                    />
-                    <br /><br />
+                        <input
+                            value={edit.department}
+                            onChange={(e) =>
+                                setEdit({ ...edit, department: e.target.value })
+                            }
+                            placeholder="Department"
+                        />
+                        <br /><br />
 
-                    <button onClick={updateEmployee}>
-                        Update
-                    </button>
+                        <input
+                            value={edit.userType}
+                            onChange={(e) =>
+                                setEdit({ ...edit, userType: e.target.value })
+                            }
+                            placeholder="User Type"
+                        />
+                        <br /><br />
+
+                        <button onClick={updateEmployee}>
+                            Update
+                        </button>
+
+                        <button onClick={() => {
+                            setShowModal(false);
+                            setEdit(null);
+                        }}>
+                            Cancel
+                        </button>
+
+                    </div>
                 </div>
             )}
+
         </div>
     );
 }
+
+//styles
+
+const overlayStyle = {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
+};
+
+const modalStyle = {
+    background: "white",
+    padding: "20px",
+    borderRadius: "10px",
+    width: "300px"
+};
