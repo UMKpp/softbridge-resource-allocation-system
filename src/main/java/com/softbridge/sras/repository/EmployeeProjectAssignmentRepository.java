@@ -13,5 +13,7 @@ public interface EmployeeProjectAssignmentRepository extends JpaRepository<Emplo
 
     List<EmployeeProjectAssignment> findByEmployee(Employee employee);
 
+    List<EmployeeProjectAssignment> findByAssignedBy(Employee assignedBy);
+
     boolean existsByProjectAndEmployeeAndStatus(Project project, Employee employee, String status);
 }
