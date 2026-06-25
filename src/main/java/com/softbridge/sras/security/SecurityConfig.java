@@ -78,6 +78,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/projects/my")
                         .hasRole("PM")
 
+                        .requestMatchers(HttpMethod.PUT, "/projects/my/*/status")
+                        .hasRole("PM")
+
+                        .requestMatchers(HttpMethod.DELETE, "/projects/my/*/team/*")
+                        .hasRole("PM")
+
                         .requestMatchers(HttpMethod.GET, "/projects/employee")
                         .hasRole("EMPLOYEE")
 
@@ -90,11 +96,23 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/projects/*/pm/*")
                         .hasRole("HR")
 
+                        .requestMatchers(HttpMethod.PUT, "/projects/*/pm")
+                        .hasRole("HR")
+
+                        .requestMatchers(HttpMethod.PUT, "/projects/*/status")
+                        .hasRole("PM")
+
                         .requestMatchers(HttpMethod.POST, "/projects/*/assign/*")
                         .hasAnyRole("PM", "HR")
 
                         .requestMatchers(HttpMethod.GET, "/projects/*/team")
                         .hasAnyRole("PM", "HR")
+
+                        .requestMatchers(HttpMethod.DELETE, "/projects/*/team/*")
+                        .hasAnyRole("PM", "HR")
+
+                        .requestMatchers(HttpMethod.DELETE, "/projects/*")
+                        .hasRole("HR")
 
                         .requestMatchers(HttpMethod.PUT, "/projects/*/complete")
                         .hasRole("PM")
