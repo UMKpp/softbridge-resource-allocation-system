@@ -93,6 +93,12 @@ Employees can:
 
 ## System Architecture
 
+Mermaid source: [docs/system-architecture.md](docs/system-architecture.md)
+
+Future PNG export placeholder:
+
+![System Architecture](docs/system-architecture.png)
+
 This is the current high-level runtime architecture.
 
 ```mermaid
@@ -107,6 +113,12 @@ flowchart LR
 ```
 
 ## ER Diagram
+
+Mermaid source: [docs/erd.md](docs/erd.md)
+
+Future PNG export placeholder:
+
+![ER Diagram](docs/erd.png)
 
 This ERD reflects the current JPA entity model. The `Project.projectManager` relation is modeled as many projects to one employee at the database level, while the service layer enforces the business rule that one PM can only be assigned to one active project.
 
@@ -173,6 +185,14 @@ erDiagram
         date allocationDate
     }
 ```
+
+## Role Interaction Diagram
+
+Mermaid source: [docs/role-flow.md](docs/role-flow.md)
+
+Future PNG export placeholder:
+
+![Role Interaction Diagram](docs/role-flow.png)
 
 ## Main Modules
 
