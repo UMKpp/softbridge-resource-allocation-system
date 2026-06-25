@@ -32,7 +32,7 @@ export default function Employees() {
             await api.delete(`/employees/${id}`, authConfig());
             fetchEmployees();
         } catch (err) {
-            alert(err.response?.data?.message || "Delete Failed");
+            alert(err.response?.data?.message || "Employee delete failed");
         }
     };
 
