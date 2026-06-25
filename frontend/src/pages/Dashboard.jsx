@@ -12,6 +12,8 @@ export default function Dashboard() {
         skills: 0,
         assignments: 0
     });
+    const [teamMembers, setTeamMembers] = useState([]);
+    const [employeeProjects, setEmployeeProjects] = useState([]);
 
     useEffect(() => {
         fetchStats();
@@ -33,18 +35,24 @@ export default function Dashboard() {
                     skills: skillsRes.data.length,
                     assignments: projectsRes.data.length
                 });
+                setEmployeeProjects(projectsRes.data);
                 return;
             }
 
             if (role === "PM") {
                 const projectsRes = await api.get("/projects/my", authConfig());
+                const teamResponses = await Promise.all(
+                    projectsRes.data.map((project) => api.get(`/projects/${project.projectId}/team`, authConfig()))
+                );
+                const members = teamResponses.flatMap((response) => response.data);
 
                 setStats({
                     employees: 0,
                     projects: projectsRes.data.length,
                     skills: 0,
-                    assignments: 0
+                    assignments: members.length
                 });
+                setTeamMembers(members);
                 return;
             }
 
@@ -72,6 +80,7 @@ export default function Dashboard() {
                 skills: 0,
                 assignments: 0
             });
+            setEmployeeProjects([]);
         } finally {
             setLoading(false);
         }
@@ -124,6 +133,13 @@ export default function Dashboard() {
                                 <p className="stat-label">Active Assignments</p>
                             </div>
                         )}
+
+                        {role === "PM" && (
+                            <div className="stat-card">
+                                <p className="stat-value">{stats.assignments}</p>
+                                <p className="stat-label">Team Members</p>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -135,6 +151,55 @@ export default function Dashboard() {
                         {role === "EMPLOYEE" && "Keep your profile and skill levels current so managers can allocate accurately."}
                     </p>
                 </section>
+
+                {role === "PM" && (
+                    <section className="panel" style={{ marginTop: "18px" }}>
+                        <h2 className="card-title">Project Team</h2>
+                        <div className="table-wrap" style={{ marginTop: "14px" }}>
+                            {teamMembers.length === 0 ? (
+                                <div className="empty-state">No team members added yet</div>
+                            ) : (
+                                <table className="data-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {teamMembers.map((member) => (
+                                        <tr key={member.id}>
+                                            <td>{member.employeeName}</td>
+                                            <td>{member.role}</td>
+                                            <td><span className="tag">{member.status}</span></td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </section>
+                )}
+
+                {role === "EMPLOYEE" && (
+                    <section className="panel" style={{ marginTop: "18px" }}>
+                        <h2 className="card-title">Assigned Projects</h2>
+                        <div className="card-grid" style={{ marginTop: "14px" }}>
+                            {employeeProjects.length === 0 ? (
+                                <div className="empty-state">No assigned projects yet</div>
+                            ) : employeeProjects.map((project) => (
+                                <div className="data-card" key={project.id}>
+                                    <h3 className="card-title">{project.projectName}</h3>
+                                    <p className="card-meta">Role: {project.role}</p>
+                                    <div className="tag-row">
+                                        <span className="tag">{project.status}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
             </main>
         </div>
     );
