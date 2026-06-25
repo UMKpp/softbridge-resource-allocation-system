@@ -4,9 +4,12 @@ import com.softbridge.sras.dto.EmployeeAvailabilityResponse;
 import com.softbridge.sras.dto.EmployeeRecommendationResponse;
 import com.softbridge.sras.exception.ResourceNotFoundException;
 import com.softbridge.sras.model.Employee;
+import com.softbridge.sras.model.Project;
 import com.softbridge.sras.repository.EmployeeRepository;
+import com.softbridge.sras.repository.EmployeeProjectAssignmentRepository;
 import com.softbridge.sras.repository.EmployeeSkillRepository;
 import com.softbridge.sras.repository.ProjectAllocationRepository;
+import com.softbridge.sras.repository.ProjectRepository;
 import com.softbridge.sras.service.EmployeeService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,15 +22,21 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final ProjectAllocationRepository allocationRepository;
     private final EmployeeSkillRepository employeeSkillRepository;
+    private final EmployeeProjectAssignmentRepository employeeProjectAssignmentRepository;
+    private final ProjectRepository projectRepository;
     private final PasswordEncoder passwordEncoder;
 
     public EmployeeServiceImpl(EmployeeRepository employeeRepository,
                                ProjectAllocationRepository allocationRepository,
                                EmployeeSkillRepository employeeSkillRepository,
+                               EmployeeProjectAssignmentRepository employeeProjectAssignmentRepository,
+                               ProjectRepository projectRepository,
                                PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.allocationRepository = allocationRepository;
         this.employeeSkillRepository = employeeSkillRepository;
+        this.employeeProjectAssignmentRepository = employeeProjectAssignmentRepository;
+        this.projectRepository = projectRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -93,7 +102,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public List<EmployeeRecommendationResponse> recommendEmployeesBySkill(String skill, Integer level) {
 
-        return employeeSkillRepository.findBySkillSkillNameAndSkillLevelGreaterThanEqual(skill, level)
+        return employeeSkillRepository.findBySkillSkillNameIgnoreCaseAndSkillLevelGreaterThanEqual(skill.trim(), level)
                 .stream()
                 .map(employeeSkill -> {
 
@@ -161,6 +170,15 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Employee not found with id: " + id));
+
+        employeeSkillRepository.deleteAll(employeeSkillRepository.findByEmployee(employee));
+        allocationRepository.deleteAll(allocationRepository.findByEmployee(employee));
+        employeeProjectAssignmentRepository.deleteAll(employeeProjectAssignmentRepository.findByEmployee(employee));
+        employeeProjectAssignmentRepository.deleteAll(employeeProjectAssignmentRepository.findByAssignedBy(employee));
+
+        List<Project> managedProjects = projectRepository.findByProjectManager(employee);
+        managedProjects.forEach(project -> project.setProjectManager(null));
+        projectRepository.saveAll(managedProjects);
 
         employeeRepository.delete(employee);
     }
