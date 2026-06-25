@@ -93,6 +93,8 @@ Employees can:
 
 ## System Architecture
 
+This is the current high-level runtime architecture.
+
 ```mermaid
 flowchart LR
     User[User Browser] --> React[React Frontend]
@@ -105,6 +107,8 @@ flowchart LR
 ```
 
 ## ER Diagram
+
+This ERD reflects the current JPA entity model. The `Project.projectManager` relation is modeled as many projects to one employee at the database level, while the service layer enforces the business rule that one PM can only be assigned to one active project.
 
 ```mermaid
 erDiagram
@@ -136,6 +140,8 @@ erDiagram
 
     EMPLOYEE_SKILL {
         long id
+        string employeeId FK
+        long skillId FK
         int skillLevel
     }
 
@@ -145,18 +151,24 @@ erDiagram
         string clientName
         string description
         string status
+        string projectManagerId FK
         string requiredSkillName
         int requiredSkillLevel
     }
 
     EMPLOYEE_PROJECT_ASSIGNMENT {
         long id
+        long projectId FK
+        string employeeId FK
         string role
+        string assignedBy FK
         string status
     }
 
     PROJECT_ALLOCATION {
         long allocationId
+        long projectId FK
+        string employeeId FK
         string allocatedRole
         date allocationDate
     }
