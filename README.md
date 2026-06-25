@@ -377,6 +377,14 @@ Username: john0001
 
 ## Deployment Notes
 
+## Deployment Architecture
+
+- Frontend: Vercel
+- Backend: Koyeb
+- Database: MySQL
+
+The system is designed to be deployed using Vercel for the React frontend and Koyeb for the Spring Boot backend, providing a lightweight cloud deployment setup for full-stack applications.
+
 - Configure production database credentials.
 - Configure production frontend API base URL.
 - Configure CORS for the deployed frontend origin.
