@@ -51,6 +51,8 @@ public class EmployeeProjectAssignmentServiceImpl implements EmployeeProjectAssi
     public EmployeeProjectAssignmentResponse assignEmployee(Long projectId,
                                                             String employeeId,
                                                             String role,
+                                                            String skillName,
+                                                            Integer skillLevel,
                                                             Employee actor,
                                                             boolean allowOverride) {
         Project project = getProject(projectId);
@@ -61,7 +63,7 @@ public class EmployeeProjectAssignmentServiceImpl implements EmployeeProjectAssi
             throw new IllegalArgumentException("Employee already has an active assignment for this project");
         }
 
-        validateSkill(role, employee, allowOverride);
+        validateSkill(role, skillName, skillLevel, employee, allowOverride);
 
         EmployeeProjectAssignment assignment = new EmployeeProjectAssignment();
         assignment.setProject(project);
@@ -122,18 +124,33 @@ public class EmployeeProjectAssignmentServiceImpl implements EmployeeProjectAssi
 
         if (request.getEmployeeId() != null && !request.getEmployeeId().isBlank()) {
             Employee employee = getEmployee(request.getEmployeeId());
-            validateSkill(request.getRole(), employee, false);
+            validateSkill(request.getRole(), null, null, employee, false);
             assignment.setEmployee(employee);
         }
 
         if (request.getRole() != null && !request.getRole().isBlank()) {
-            validateSkill(request.getRole(), assignment.getEmployee(), false);
+            validateSkill(request.getRole(), null, null, assignment.getEmployee(), false);
             assignment.setRole(normalizeRoleName(request.getRole()));
         }
 
         assignment.setAssignedBy(actor);
 
         return mapToResponse(assignmentRepository.save(assignment));
+    }
+
+    @Override
+    public void removeAssignment(Long projectId, Long assignmentId, Employee actor, boolean hrAccess) {
+        Project project = getProject(projectId);
+        requireProjectManager(project, actor, hrAccess);
+
+        EmployeeProjectAssignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Assignment not found with id: " + assignmentId));
+
+        if (!assignment.getProject().getProjectId().equals(project.getProjectId())) {
+            throw new AccessDeniedException("Assignment does not belong to this project");
+        }
+
+        assignmentRepository.delete(assignment);
     }
 
     private Project getProject(Long projectId) {
@@ -156,18 +173,21 @@ public class EmployeeProjectAssignmentServiceImpl implements EmployeeProjectAssi
         }
     }
 
-    private void validateSkill(String role, Employee employee, boolean allowOverride) {
+    private void validateSkill(String role, String skillName, Integer skillLevel, Employee employee, boolean allowOverride) {
         if (allowOverride) {
             return;
         }
 
-        List<String> requiredSkills = ROLE_SKILLS.getOrDefault(normalizeRoleName(role).toUpperCase(), List.of(normalizeRoleName(role)));
+        int requiredLevel = skillLevel == null ? 1 : skillLevel;
+        List<String> requiredSkills = skillName == null || skillName.isBlank()
+                ? ROLE_SKILLS.getOrDefault(normalizeRoleName(role).toUpperCase(), List.of(normalizeRoleName(role)))
+                : List.of(skillName.trim());
 
         boolean qualified = requiredSkills.stream()
-                .anyMatch(skillName -> employeeSkillRepository
-                        .findByEmployeeAndSkillSkillNameIgnoreCase(employee, skillName)
+                .anyMatch(requiredSkill -> employeeSkillRepository
+                        .findByEmployeeAndSkillSkillNameIgnoreCase(employee, requiredSkill)
                         .map(EmployeeSkill::getSkillLevel)
-                        .filter(level -> level >= 3)
+                        .filter(level -> level >= requiredLevel)
                         .isPresent());
 
         if (!qualified) {
@@ -190,9 +210,10 @@ public class EmployeeProjectAssignmentServiceImpl implements EmployeeProjectAssi
                 assignment.getProject().getProjectName(),
                 assignment.getEmployee().getEmployeeId(),
                 assignment.getEmployee().getFullName(),
+                assignment.getEmployee().getUsername(),
                 assignment.getRole(),
                 assignment.getAssignedBy().getFullName(),
-                assignment.getStatus()
+                assignment.getProject().getStatus()
         );
     }
 }
