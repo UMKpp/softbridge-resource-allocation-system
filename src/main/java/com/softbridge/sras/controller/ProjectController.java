@@ -59,6 +59,11 @@ public class ProjectController {
         return projectService.assignProjectManager(id, pmId);
     }
 
+    @PutMapping("/{id}/pm")
+    public Project assignProjectManagerByUsername(@PathVariable Long id, @RequestParam String username) {
+        return projectService.assignProjectManagerByUsername(id, username);
+    }
+
     @GetMapping("/{id}")
     public Project getProjectById(@PathVariable Long id) {
         return projectService.getProjectById(id);
@@ -67,6 +72,28 @@ public class ProjectController {
     @PutMapping("/{id}")
     public Project updateProject(@PathVariable Long id, @Valid @RequestBody Project project) {
         return projectService.updateProject(id, project);
+    }
+
+    @PutMapping("/{id}/status")
+    public Project updateProjectStatus(@PathVariable Long id,
+                                       @RequestParam String status,
+                                       Authentication authentication) {
+        return projectService.updateProjectStatus(
+                id,
+                status,
+                roleService.getCurrentEmployee(authentication)
+        );
+    }
+
+    @PutMapping("/my/{id}/status")
+    public Project updateMyProjectStatus(@PathVariable Long id,
+                                         @RequestParam String status,
+                                         Authentication authentication) {
+        return projectService.updateProjectStatus(
+                id,
+                status,
+                roleService.getCurrentEmployee(authentication)
+        );
     }
 
     @DeleteMapping("/{id}")
@@ -82,7 +109,15 @@ public class ProjectController {
         Employee actor = roleService.getCurrentEmployee(authentication);
         boolean hrAccess = roleService.hasRole(authentication, "HR");
 
-        return assignmentService.assignEmployee(projectId, employeeId, request.getAssignmentRole(), actor, hrAccess);
+        return assignmentService.assignEmployee(
+                projectId,
+                employeeId,
+                request.getAssignmentRole(),
+                request.getSkillName(),
+                request.getSkillLevel(),
+                actor,
+                hrAccess
+        );
     }
 
     @GetMapping("/{projectId}/team")
@@ -105,5 +140,29 @@ public class ProjectController {
                                                                @RequestBody ProjectTeamChangeRequest request,
                                                                Authentication authentication) {
         return assignmentService.changeTeam(projectId, request, roleService.getCurrentEmployee(authentication));
+    }
+
+    @DeleteMapping("/{projectId}/team/{assignmentId}")
+    public void removeProjectTeamMember(@PathVariable Long projectId,
+                                        @PathVariable Long assignmentId,
+                                        Authentication authentication) {
+        assignmentService.removeAssignment(
+                projectId,
+                assignmentId,
+                roleService.getCurrentEmployee(authentication),
+                roleService.hasRole(authentication, "HR")
+        );
+    }
+
+    @DeleteMapping("/my/{projectId}/team/{assignmentId}")
+    public void removeMyProjectTeamMember(@PathVariable Long projectId,
+                                          @PathVariable Long assignmentId,
+                                          Authentication authentication) {
+        assignmentService.removeAssignment(
+                projectId,
+                assignmentId,
+                roleService.getCurrentEmployee(authentication),
+                false
+        );
     }
 }
