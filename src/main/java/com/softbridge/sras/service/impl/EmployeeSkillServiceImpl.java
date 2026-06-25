@@ -7,8 +7,10 @@ import com.softbridge.sras.exception.ResourceNotFoundException;
 import com.softbridge.sras.model.Employee;
 import com.softbridge.sras.model.EmployeeSkill;
 import com.softbridge.sras.model.Skill;
+import com.softbridge.sras.repository.EmployeeProjectAssignmentRepository;
 import com.softbridge.sras.repository.EmployeeRepository;
 import com.softbridge.sras.repository.EmployeeSkillRepository;
+import com.softbridge.sras.repository.ProjectAllocationRepository;
 import com.softbridge.sras.repository.SkillRepository;
 import com.softbridge.sras.service.EmployeeSkillService;
 import org.springframework.stereotype.Service;
@@ -21,13 +23,19 @@ public class EmployeeSkillServiceImpl implements EmployeeSkillService {
     private final EmployeeSkillRepository employeeSkillRepository;
     private final EmployeeRepository employeeRepository;
     private final SkillRepository skillRepository;
+    private final ProjectAllocationRepository allocationRepository;
+    private final EmployeeProjectAssignmentRepository assignmentRepository;
 
     public EmployeeSkillServiceImpl(EmployeeSkillRepository employeeSkillRepository,
                                     EmployeeRepository employeeRepository,
-                                    SkillRepository skillRepository) {
+                                    SkillRepository skillRepository,
+                                    ProjectAllocationRepository allocationRepository,
+                                    EmployeeProjectAssignmentRepository assignmentRepository) {
         this.employeeSkillRepository = employeeSkillRepository;
         this.employeeRepository = employeeRepository;
         this.skillRepository = skillRepository;
+        this.allocationRepository = allocationRepository;
+        this.assignmentRepository = assignmentRepository;
     }
 
     @Override
@@ -82,30 +90,40 @@ public class EmployeeSkillServiceImpl implements EmployeeSkillService {
 
     @Override
     public List<EmployeeSearchResponse> searchEmployees(String skill, Integer level) {
+        String skillName = skill == null ? "" : skill.trim();
 
         List<EmployeeSkill> employeeSkills =
-                employeeSkillRepository.findBySkillSkillNameAndSkillLevelGreaterThanEqual(skill, level);
+                employeeSkillRepository.findBySkillSkillNameIgnoreCaseAndSkillLevelGreaterThanEqual(skillName, level);
 
         return employeeSkills.stream()
                 .map(EmployeeSkill::getEmployee)
                 .distinct()
-                .map(emp -> {
-                    Employee employeeWithSkills = employeeRepository.findByIdWithSkills(emp.getEmployeeId())
-                            .orElse(emp);
-
-                    return new EmployeeSearchResponse(
-                            employeeWithSkills.getEmployeeId(),
-                            employeeWithSkills.getFullName(),
-                            employeeWithSkills.getSkills().stream()
-                                    .filter(s -> s.getSkillLevel() >= level)
-                                    .map(s -> new EmployeeSearchResponse.SkillInfo(
-                                            s.getSkill().getSkillName(),
-                                            s.getSkillLevel()
-                                    ))
-                                    .toList()
-                    );
-                })
+                .map(employee -> new EmployeeSearchResponse(
+                        employee.getEmployeeId(),
+                        employee.getFullName(),
+                        employee.getUsername(),
+                        employee.getEmail(),
+                        getAvailabilityStatus(employee)
+                ))
                 .toList();
+    }
+
+    private String getAvailabilityStatus(Employee employee) {
+        long projectCount = allocationRepository.countByEmployee(employee)
+                + assignmentRepository.findByEmployee(employee)
+                .stream()
+                .filter(assignment -> "ACTIVE".equals(assignment.getStatus()))
+                .count();
+
+        if (projectCount == 0) {
+            return "AVAILABLE";
+        }
+
+        if (projectCount == 1) {
+            return "PARTIALLY_ALLOCATED";
+        }
+
+        return "FULLY_ALLOCATED";
     }
 
     @Override
