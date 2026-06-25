@@ -449,7 +449,7 @@ export default function Projects() {
                                         <option key={project.projectId} value={project.projectId}>{project.projectName}</option>
                                     ))}
                                 </select>
-                                <input className="field" value={selectedEmployeeId} onChange={(e) => setSelectedEmployeeId(e.target.value)} placeholder="Selected employee ID" />
+                                <input className="field" value={selectedEmployeeId} onChange={(e) => setSelectedEmployeeId(e.target.value)} placeholder="Employee username or ID" />
                                 <input className="field" value={assignmentRole} onChange={(e) => setAssignmentRole(e.target.value)} placeholder="Project role" />
                             </div>
                             <div className="actions">
