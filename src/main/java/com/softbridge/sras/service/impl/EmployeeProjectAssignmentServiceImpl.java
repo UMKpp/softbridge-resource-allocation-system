@@ -158,9 +158,12 @@ public class EmployeeProjectAssignmentServiceImpl implements EmployeeProjectAssi
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + projectId));
     }
 
-    private Employee getEmployee(String employeeId) {
-        return employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + employeeId));
+    private Employee getEmployee(String employeeLookup) {
+        String lookup = employeeLookup == null ? "" : employeeLookup.trim();
+
+        return employeeRepository.findByEmployeeIdIgnoreCase(lookup)
+                .or(() -> employeeRepository.findByUsernameIgnoreCase(lookup))
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with username or id: " + employeeLookup));
     }
 
     private void requireProjectManager(Project project, Employee actor, boolean hrAccess) {
