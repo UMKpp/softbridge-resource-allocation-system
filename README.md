@@ -424,4 +424,4 @@ The system is designed to be deployed using Vercel for the React frontend and Ko
 
 ## Author
 
-Developed by Upuli Kuruppu as a full-stack learning and portfolio project.
+Developed by Upuli Kuruppu
