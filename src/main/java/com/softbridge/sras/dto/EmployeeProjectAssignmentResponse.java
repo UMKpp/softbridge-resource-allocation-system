@@ -12,6 +12,7 @@ public class EmployeeProjectAssignmentResponse {
     private String projectName;
     private String employeeId;
     private String employeeName;
+    private String username;
     private String role;
     private String assignedBy;
     private String status;
