@@ -12,5 +12,5 @@ public interface EmployeeSkillRepository extends JpaRepository<EmployeeSkill, Lo
 
     Optional<EmployeeSkill> findByEmployeeAndSkillSkillNameIgnoreCase(Employee employee, String skillName);
 
-    List<EmployeeSkill> findBySkillSkillNameAndSkillLevelGreaterThanEqual(String skillName, Integer skillLevel);
+    List<EmployeeSkill> findBySkillSkillNameIgnoreCaseAndSkillLevelGreaterThanEqual(String skillName, Integer skillLevel);
 }
